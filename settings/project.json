@@ -1,0 +1,11 @@
+{
+  "migrate-history": [
+    "cloud-function"
+  ],
+  "excluded-modules": [
+    "3D Physics/Builtin",
+    "3D Physics/cannon.js",
+    "3D Particle",
+    "SafeArea"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+    "chess_board_lines": 13,
+    "chess_board_color": [
+        128,
+        128,
+        0
+    ],
+    "chess_board_line_color": [
+        0,
+        0,
+        0
+    ],
+    "chess_board_point_size": 8,
+    "chess_size": 30,
+    "chess_margin": 5
+}
