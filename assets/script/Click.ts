@@ -29,12 +29,38 @@ export default class Click extends cc.Component {
 
     private chessPosition: Array<Array<number>> = new Array<Array<number>>()
 
+    private hasFinished: Boolean = false;
+
     // LIFE-CYCLE CALLBACKS:
+
+    protected onLoad(): void {
+        let clickEventHandler = new cc.Component.EventHandler();
+        clickEventHandler.target = this.node; // 这个 node 节点是你的事件处理代码组件所属的节点
+        clickEventHandler.component = "Click";// 这个是代码文件名
+        clickEventHandler.handler = "finish";
+
+        let buttonNode: cc.Node = cc.find('Canvas/CheckWinAlert/Button');
+        let button: cc.Button = buttonNode.getComponent(cc.Button);
+        button.clickEvents.push(clickEventHandler);
+
+        // let buttonNode: cc.Node = cc.find('Canvas/CheckWinAlert/Button');
+        // buttonNode.on(cc.Node.EventType.MOUSE_DOWN, Click.finish)
+        console.log(button.clickEvents[0].target)
+    }
+
+    finish(event, customEventData) {
+        console.log(event)
+        // let chessBoardNode: cc.Node = cc.find('Canvas')
+        // let click: Click = chessBoardNode.getComponent(Click)
+        // click.resetChessBoard();
+
+        this.resetChessBoard()
+        cc.find('Canvas/CheckWinAlert').active = false
+    }
 
     start() {
         // [3]
         this.node.on(cc.Node.EventType.MOUSE_DOWN, Click.onClick);
-
     }
 
     update(dt) {
@@ -51,7 +77,17 @@ export default class Click extends cc.Component {
     static onClick(event) {
         // console.log(event.getLocationX() + ':' + event.getLocationY());
         let targetNode: cc.Node = event.target;
+        console.log(targetNode.name)
         let targetChessBoard: Click = targetNode.getComponent('Click')
+        if (targetChessBoard === undefined) {
+            return;
+        }
+
+        if (targetChessBoard.hasFinished) {
+            console.log('胜负已分')
+            return
+        }
+
         let graphics = targetNode.getComponent(cc.Graphics)
 
         if (targetChessBoard.blackTurn === undefined) {
@@ -98,17 +134,21 @@ export default class Click extends cc.Component {
 
         if (targetChessBoard.checkWin(clickCoordinateRow, clickCoordinateCol)) {
             // alert('chessType:' + chess_type + '获胜')
-            graphics.fillColor = new cc.Color(128, 128, 128)
-            graphics.fillRect(-200, -100, 400, 200)
+            // graphics.fillColor = new cc.Color(128, 128, 128)
+            // graphics.fillRect(-200, -100, 400, 200)
             // let label: cc.Label = new cc.Label()
             // label.string = 'chessType:' + chess_type + '获胜';
             // label.fontSize = 120
             // targetNode.addComponent(label)
-            let node = cc.find('Canvas/CheckWinAlert')
-            let label = node.getComponent(cc.Label)
+            let alertNode = cc.find('Canvas/CheckWinAlert')
+            alertNode.active = true;
+
+            let node: cc.Node = cc.find('Canvas/CheckWinAlert/Label')
+            let label: cc.Label = node.getComponent(cc.Label)
             label.string = 'chessType:' + chess_type + '获胜';
-            node.active = true;
+
             // targetChessBoard.resetChessBoard()
+            targetChessBoard.hasFinished = true
         }
 
         targetChessBoard.blackTurn = !targetChessBoard.blackTurn;
@@ -162,9 +202,12 @@ export default class Click extends cc.Component {
                 graphics.moveTo(-lineLength / 2, -x);
                 graphics.lineTo(lineLength / 2, -x);
 
+                graphics.stroke();
+
                 // 中心点画点
                 if (x == 0) {
                     graphics.ellipse(0, 0, pointSize / 2, pointSize / 2)
+                    graphics.fill()
                 }
 
                 // 从外向里第3条线 画点
@@ -180,6 +223,7 @@ export default class Click extends cc.Component {
                     graphics.ellipse(0, -x, pointSize / 2, pointSize / 2)
                     graphics.ellipse(x, 0, pointSize / 2, pointSize / 2)
                     graphics.ellipse(-x, 0, pointSize / 2, pointSize / 2)
+                    graphics.fill()
                 }
             }
 
@@ -195,6 +239,9 @@ export default class Click extends cc.Component {
 
             // 当前要落下的棋子
             this.blackTurn = true;
+
+            // 标记为未结束
+            this.hasFinished = false;
 
             this.hasInit = true
         }
@@ -266,7 +313,7 @@ export default class Click extends cc.Component {
         }
 
         // 斜下
-        for (let rowIndex = bottom, colIndex = left; rowIndex >= bottom && colIndex <= right; rowIndex--, colIndex++) {
+        for (let rowIndex = top, colIndex = left; rowIndex >= bottom && colIndex <= right; rowIndex--, colIndex++) {
             if (this.chessPosition[rowIndex][colIndex] == targetType) {
                 seriesCnt++;
                 if (seriesCnt >= 5) {

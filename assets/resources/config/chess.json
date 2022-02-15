@@ -10,7 +10,8 @@
         0,
         0
     ],
-    "chess_board_point_size": 8,
-    "chess_size": 30,
+    "chess_board_point_size": 10,
+    "chess_board_padding": 10,
+    "chess_size": 40,
     "chess_margin": 5
 }
