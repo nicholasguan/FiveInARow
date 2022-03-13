@@ -254,77 +254,101 @@ export default class Click extends cc.Component {
         // 获取最大坐标
         let maxPositionScope: number = Click.globalConfig.chess_board_lines - 1
 
-        // 找出当前棋子可以生效的判定范围
-        let left: number = Math.max(0, col - 4)
-        let right: number = Math.min(maxPositionScope, col + 4)
-        let top: number = Math.min(maxPositionScope, row + 4)
-        let bottom: number = Math.max(0, row - 4)
-
-        // 找出4个方向：水平九子，垂直九子，斜上九子、斜下九子，分别检查连续情况
-        let directions = [
-            [0, 1], // 垂直
-            [1, 0], // 水平
-            [1, 1], // 斜上
-            [1, -1],// 斜下
-        ];
-
-        // 遍历4个方向 找出连续子数
-        let seriesCnt: number = 0;
-
-        // 水平
-        for (let colIndex = left; colIndex <= right; colIndex++) {
-            if (this.chessPosition[row][colIndex] == targetType) {
-                seriesCnt++;
-                if (seriesCnt >= 5) {
-                    console.log('chessType:' + targetType + '获胜')
-                    return true;
-                }
-            } else {
-                seriesCnt = 0;
-            }
-        }
-
-        // 垂直
-        seriesCnt = 0;
-        for (let rowIndex = bottom; rowIndex <= top; rowIndex++) {
-            if (this.chessPosition[rowIndex][col] == targetType) {
-                seriesCnt++;
-                if (seriesCnt >= 5) {
-                    console.log('chessType:' + targetType + '获胜')
-                    return true;
-                }
-            } else {
-                seriesCnt = 0;
-            }
-        }
-
-        // 斜上
-        seriesCnt = 0;
-        for (let rowIndex = bottom, colIndex = left; rowIndex <= top && colIndex <= right; rowIndex++, colIndex++) {
-            if (this.chessPosition[rowIndex][colIndex] == targetType) {
-                seriesCnt++;
-                if (seriesCnt >= 5) {
-                    console.log('chessType:' + targetType + '获胜')
-                    return true;
-                }
-            } else {
-                seriesCnt = 0;
-            }
-        }
-
-        // 斜下
-        for (let rowIndex = top, colIndex = left; rowIndex >= bottom && colIndex <= right; rowIndex--, colIndex++) {
-            if (this.chessPosition[rowIndex][colIndex] == targetType) {
-                seriesCnt++;
-                if (seriesCnt >= 5) {
-                    console.log('chessType:' + targetType + '获胜')
-                    return true;
-                }
-            } else {
-                seriesCnt = 0;
-            }
-        }
+        return this.checkLR(row, col, maxPositionScope, targetType)
+            || this.checkTB(row, col, maxPositionScope, targetType)
+            || this.checkLBRT(row, col, maxPositionScope, targetType)
+            || this.checkLTRB(row, col, maxPositionScope, targetType);
 
         return false
+    }
+
+    checkLBRT(baseRow: number, baseCol: number, maxIndex, targetType: number): boolean {
+        // y = x + b
+        let deltaLB: number = Math.min(baseRow, baseCol);
+        let deltaRT: number = Math.min(maxIndex - baseRow, maxIndex - baseCol);
+
+        let row0: number = baseRow - deltaLB;
+        let col0: number = baseCol - deltaLB;
+        let row1: number = baseRow + deltaRT;
+        let col1: number = baseCol + deltaRT;
+
+        let seriesCnt: number = 0;
+        for (let rowIndex: number = row0, colIndex: number = col0; rowIndex <= row1 && colIndex <= col1; rowIndex++, colIndex++) {
+            if (this.chessPosition[rowIndex][colIndex] == targetType) {
+                seriesCnt++;
+                if (seriesCnt >= 5) {
+                    console.log('chessType:' + targetType + '获胜')
+                    return true;
+                }
+            } else {
+                seriesCnt = 0;
+            }
+        }
+
+        return false;
+    }
+
+    checkLTRB(baseRow: number, baseCol: number, maxIndex, targetType: number): boolean {
+        // y = x + b
+        let deltaLT: number = Math.min(baseCol, maxIndex - baseRow);
+        let deltaRB: number = Math.min(baseRow, maxIndex - baseCol);
+
+        let row0: number = baseRow + deltaLT;
+        let col0: number = baseCol - deltaLT;
+        let row1: number = baseRow - deltaRB;
+        let col1: number = baseCol + deltaRB;
+
+        let seriesCnt: number = 0;
+        for (let rowIndex: number = row0, colIndex: number = col0; rowIndex >= row1 && colIndex <= col1; rowIndex--, colIndex++) {
+            if (this.chessPosition[rowIndex][colIndex] == targetType) {
+                seriesCnt++;
+                if (seriesCnt >= 5) {
+                    console.log('chessType:' + targetType + '获胜')
+                    return true;
+                }
+            } else {
+                seriesCnt = 0;
+            }
+        }
+
+        return false;
+    }
+
+    checkLR(baseRow: number, baseCol: number, maxIndex, targetType: number): boolean {
+        let seriesCnt: number = 0;
+        let left: number = Math.max(0, baseCol - 4)
+        let right: number = Math.min(maxIndex, baseCol + 4)
+
+        for (let colIndex = left; colIndex <= right; colIndex++) {
+            if (this.chessPosition[baseRow][colIndex] == targetType) {
+                seriesCnt++;
+                if (seriesCnt >= 5) {
+                    console.log('chessType:' + targetType + '获胜')
+                    return true;
+                }
+            } else {
+                seriesCnt = 0;
+            }
+        }
+        return false;
+    }
+
+    checkTB(baseRow: number, baseCol: number, maxIndex: number, targetType: number): boolean {
+        let seriesCnt: number = 0;
+        let top: number = Math.min(maxIndex, baseRow + 4)
+        let bottom: number = Math.max(0, baseRow - 4)
+
+        for (let rowIndex = top; rowIndex >= bottom; rowIndex--) {
+            if (this.chessPosition[rowIndex][baseCol] == targetType) {
+                seriesCnt++;
+                if (seriesCnt >= 5) {
+                    console.log('chessType:' + targetType + '获胜')
+                    return true;
+                }
+            } else {
+                seriesCnt = 0;
+            }
+        }
+        return false;
     }
 }
